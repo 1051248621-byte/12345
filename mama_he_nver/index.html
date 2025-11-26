@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在大街上 - EduLab 中文课堂</title>
+<style>
+  body {
+    font-family: "Microsoft YaHei", sans-serif;
+    font-size: 70px;
+    line-height: 1.8;
+    margin: 0 auto;
+    max-width: 1400px;
+    padding: 60px 40px;
+
+  h2 {
+    text-align: center;
+    font-size: 90px;
+    margin-bottom: 60px;
+  }
+
+  h2 span {
+    display: block;
+    font-size: 40px;
+    margin-top: 10px;
+  }
+
+  /* 聊天行布局 */
+  .dialogue-line {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    width: 100%;
+  }
+
+  /* 所有头像都在左侧 */
+  .dialogue-line .avatar {
+    flex-shrink: 0;
+    width: 55px;
+    height: 55px;
+    margin-right: 20px;
+  }
+
+  /* 对话框部分 */
+  .bubble {
+    background: rgba(255, 255, 255, 1);
+    border-radius: 20px;
+    padding: 25px 30px;
+    flex: 1;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  }
+
+  .sentence-container {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .char-block {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    text-align: center;
+  }
+
+  .char-block .pinyin {
+    font-family: "Microsoft YaHei", sans-serif;
+    font-size: 40px;
+    line-height: 1.2;
+  }
+
+  .char-block .hanzi {
+    font-family: "楷体", sans-serif;
+    font-size: 85px;
+    cursor: default;
+
+    border-radius: 4px;
+    padding: 0 3px;
+  }
+
+  .char-block .hanzi:hover {
+    background-color: #eeeeee;
+  }
+
+  .char-block .tooltiptext {
+    visibility: hidden;
+    width: max-content;
+    max-width: 800px;
+    background-color: #CCE8CF;
+    color: #000;
+    text-align: center;
+    padding: 10px 14px;
+    border-radius: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 103%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-family: "Microsoft YaHei", sans-serif;
+    font-size: 80px;
+    line-height: 1.3;
+  }
+
+  .char-block .hanzi:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .bulgarian {
+    font-family: "Microsoft YaHei", sans-serif;
+    font-size: 50px;
+    margin-top: 10px;
+    color: #222;
+  }
+
+  .play-btn {
+    margin-left: 0px;
+    cursor: pointer;
+    background-color: #000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-size: 20px;
+    transition: background-color 0.3s;
+  }
+
+  .play-btn:hover {
+    background-color: #333;
+  }
+
+/* 改造标题气泡 */
+/* ===== 最美标题气泡（Muse Edition）===== */
+
+.title-bubble-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 50px 0 110px;
+}
+
+.title-bubble {
+  background: #fff;
+  border-radius: 42px;
+  padding: 65px 110px 58px;
+  text-align: center;
+  border: 2.5px solid #000;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.08);
+  position: relative;
+}
+
+/* 顶部装饰线（高级感来源） */
+.title-bubble::before {
+  content: "";
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 4px;
+  border-radius: 2px;
+  background: #000;
+}
+
+.title-bubble .sentence-container {
+  justify-content: center;
+  gap: 50px;
+  margin-top: 20px;
+}
+
+.title-bubble .char-block {
+  min-width: 150px;
+}
+
+.title-bubble .pinyin {
+  font-size: 46px;
+  margin-bottom: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: #111;
+}
+
+.title-bubble .hanzi {
+  font-size: 112px;
+  font-family: "楷体", "STKaiti", serif;
+  color: #000;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+.title-bubble .bulgarian {
+  font-size: 58px;
+  margin-top: 35px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #000;
+  position: relative;
+}
+
+/* 保语下划线装饰 */
+.title-bubble .bulgarian::after {
+  content: "";
+  display: block;
+  width: 180px;
+  height: 3px;
+  background: black;
+  margin: 20px auto 0;
+  border-radius: 3px;
+}
+
+/* 高级小动效（很轻，不浮夸） */
+.title-bubble {
+  animation: titleFloat 1.2s ease-out forwards;
+}
+
+@keyframes titleFloat {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 手机适配 */
+@media (max-width: 768px) {
+  .title-bubble {
+    padding: 45px 35px;
+  }
+
+  .title-bubble .hanzi {
+    font-size: 72px;
+  }
+
+  .title-bubble .pinyin {
+    font-size: 28px;
+  }
+
+  .title-bubble .bulgarian {
+    font-size: 35px;
+  }
+}
+</style>
+
+<script>
+function playSentenceAudio(filename) {
+  const audio = new Audio(filename);
+  audio.play();
+}
+</script>
+</head>
+
+<body>
+
+<!-- 对话气泡式标题 -->
+<div class="title-bubble-wrapper">
+  <div class="title-bubble">
+
+    <div class="sentence-container">
+
+      <span class="char-block">
+        <span class="pinyin">māma</span>
+        <span class="hanzi">
+          妈妈
+          <span class="tooltiptext">мамо</span>
+        </span>
+      </span>
+
+      <span class="char-block">
+        <span class="pinyin">hé</span>
+        <span class="hanzi">
+          和
+          <span class="tooltiptext">и</span>
+        </span>
+      </span>
+
+      <span class="char-block">
+        <span class="pinyin">nǚ'ér</span>
+        <span class="hanzi">
+          女儿
+          <span class="tooltiptext">дъщеря</span>
+        </span>
+      </span>
+
+    </div>
+
+    <div class="bulgarian">
+      Мама и дъщеря
+    </div>
+
+  </div>
+</div>
+
+<br>
+
+<!-- 1 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">mā ma</span><span class="hanzi">妈妈<span class="tooltiptext">мамо</span></span></span>，
+      <span class="char-block"><span class="pinyin">zhè gè</span><span class="hanzi">这个<span class="tooltiptext">този / това</span></span></span>
+      <span class="char-block"><span class="pinyin">wéi jīn</span><span class="hanzi">围巾<span class="tooltiptext">шал</span></span></span>
+      <span class="char-block"><span class="pinyin">hǎo</span><span class="hanzi">好<span class="tooltiptext">много</span></span></span>
+      <span class="char-block"><span class="pinyin">piào liàng</span><span class="hanzi">漂亮<span class="tooltiptext">красив</span></span></span>
+      <span class="char-block"><span class="pinyin">ya</span><span class="hanzi">呀<span class="tooltiptext">(междуметие)</span></span></span>！
+      <button class="play-btn" onclick="playSentenceAudio('mamahenver1.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Мамо, този шал е толкова красив!</span>
+  </div>
+</div>
+
+<!-- 2 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">wǒ</span><span class="hanzi">我<span class="tooltiptext">аз</span></span></span>
+      <span class="char-block"><span class="pinyin">hǎo</span><span class="hanzi">好<span class="tooltiptext">много</span></span></span>
+      <span class="char-block"><span class="pinyin">xǐ huān</span><span class="hanzi">喜欢<span class="tooltiptext">харесвам</span></span></span>
+      <span class="char-block"><span class="pinyin">ya</span><span class="hanzi">呀<span class="tooltiptext"></span></span></span>！
+      <button class="play-btn" onclick="playSentenceAudio('mamahenver2.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Толкова го харесвам!</span>
+  </div>
+</div>
+
+<!-- 3 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">wǒ</span><span class="hanzi">我<span class="tooltiptext">аз</span></span></span>
+      <span class="char-block"><span class="pinyin">zhī dào</span><span class="hanzi">知道<span class="tooltiptext">знам</span></span></span>
+      <span class="char-block"><span class="pinyin">nǐ</span><span class="hanzi">你<span class="tooltiptext">ти</span></span></span>
+      <span class="char-block"><span class="pinyin">tè bié</span><span class="hanzi">特别<span class="tooltiptext">особено</span></span></span>
+      <span class="char-block"><span class="pinyin">xǐ huān</span><span class="hanzi">喜欢<span class="tooltiptext">харесваш</span></span></span>
+      <span class="char-block"><span class="pinyin">hóng</span><span class="hanzi">红<span class="tooltiptext">червен</span></span></span>
+      <span class="char-block"><span class="pinyin">sè</span><span class="hanzi">色<span class="tooltiptext">цвят</span></span></span>，
+      <button class="play-btn" onclick="playSentenceAudio('mamahenver3.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Знам, че много харесваш червения цвят,</span>
+  </div>
+</div>
+
+<!-- 4 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">suǒ yǐ</span><span class="hanzi">所以<span class="tooltiptext">затова</span></span></span>
+      <span class="char-block"><span class="pinyin">gěi</span><span class="hanzi">给<span class="tooltiptext">давам / за</span></span></span>
+      <span class="char-block"><span class="pinyin">nǐ</span><span class="hanzi">你<span class="tooltiptext">теб</span></span></span>
+      <span class="char-block"><span class="pinyin">mǎi</span><span class="hanzi">买<span class="tooltiptext">купувам</span></span></span>
+      <span class="char-block"><span class="pinyin">le</span><span class="hanzi">了<span class="tooltiptext">(Частица. Използва се, за да се посочи завършването на действието.)</span></span></span>
+      <span class="char-block"><span class="pinyin">zhè gе</span><span class="hanzi">这个<span class="tooltiptext">този</span></span></span>。
+      <button class="play-btn" onclick="playSentenceAudio('mamahenver4.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">затова ти купих този.</span>
+  </div>
+</div>
+
+<!-- 5 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">mā ma</span><span class="hanzi">妈妈<span class="tooltiptext">мамо</span></span></span>，
+      <span class="char-block"><span class="pinyin">nǐ</span><span class="hanzi">你<span class="tooltiptext">ти</span></span></span>
+      <span class="char-block"><span class="pinyin">zhēn</span><span class="hanzi">真<span class="tooltiptext">наистина</span></span></span>
+      <span class="char-block"><span class="pinyin">hǎo</span><span class="hanzi">好<span class="tooltiptext">добра</span></span></span>！
+      <button class="play-btn" onclick="playSentenceAudio('mamahenver5.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Мамо, много си мила!</span>
+  </div>
+</div>
+
+<!-- 6 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6	H20	v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">wǒ</span><span class="hanzi">我<span class="tooltiptext">аз</span></span></span>
+      <span class="char-block"><span class="pinyin">ài</span><span class="hanzi">爱<span class="tooltiptext">обичам</span></span></span>
+      <span class="char-block"><span class="pinyin">nǐ</span><span class="hanzi">你<span class="tooltiptext">теб</span></span></span>！
+      <span class="char-block"><span class="pinyin">bào</span><span class="hanzi">抱<span class="tooltiptext">прегръщам</span></span></span>
+      <span class="char-block"><span class="pinyin">bаo</span><span class="hanzi">抱<span class="tooltiptext"></span></span></span>
+      <span class="char-block"><span class="pinyin">nǐ</span><span class="hanzi">你<span class="tooltiptext">теб</span></span></span>！
+      <button class="play-btn" onclick="playSentenceAudio('mamahenver6.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Обичам те! Прегръщам те!</span>
+  </div>
+</div>
+
+<!-- 7 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">bǎo bèi</span><span class="hanzi">宝贝<span class="tooltiptext">съкровище</span></span></span>，
+      <span class="char-block"><span class="pinyin">nǐ</span><span class="hanzi">你<span class="tooltiptext">ти</span></span></span>
+      <span class="char-block"><span class="pinyin">zhēn</span><span class="hanzi">真<span class="tooltiptext">наистина</span></span></span>
+      <span class="char-block"><span class="pinyin">shì</span><span class="hanzi">是<span class="tooltiptext">си</span></span></span>
+      <span class="char-block"><span class="pinyin">mā mа</span><span class="hanzi">妈妈<span class="tooltiptext">мамо</span></span></span>
+      <span class="char-block"><span class="pinyin">de</span><span class="hanzi">的<span class="tooltiptext">(притежателна частица)</span></span></span>
+      <span class="char-block"><span class="pinyin">xiǎo</span><span class="hanzi">小<span class="tooltiptext">малко</span></span></span>
+      <span class="char-block"><span class="pinyin">tài yаng</span><span class="hanzi">太阳<span class="tooltiptext">слънце</span></span></span>。
+      <button class="play-btn" onclick="playSentenceAudio('mamahenver7.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Скъпи, ти наистина си малко слънчице на мамо.</span>
+  </div>
+</div>
+
+<!-- 8 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">rén men</span><span class="hanzi">人们<span class="tooltiptext">хората</span></span></span>
+      <span class="char-block"><span class="pinyin">dōu</span><span class="hanzi">都<span class="tooltiptext">(наречие)(всички)</span></span></span>
+      <span class="char-block"><span class="pinyin">shuō</span><span class="hanzi">说<span class="tooltiptext">говорят</span></span></span>“
+      <span class="char-block"><span class="pinyin">nǚ ér</span><span class="hanzi">女儿<span class="tooltiptext">дъщеря</span></span></span>
+      <span class="char-block"><span class="pinyin">shì</span><span class="hanzi">是<span class="tooltiptext">е</span></span></span>
+      <span class="char-block"><span class="pinyin">mā ma</span><span class="hanzi">妈妈<span class="tooltiptext">майка</span></span></span>
+      <span class="char-block"><span class="pinyin">de</span><span class="hanzi">的<span class="tooltiptext">(притежателна частица)</span></span></span>
+      <span class="char-block"><span class="pinyin">xiǎo</span><span class="hanzi">小<span class="tooltiptext">малко</span></span></span>
+      <span class="char-block"><span class="pinyin">mián ǎo</span><span class="hanzi">棉袄<span class="tooltiptext">памучно яке</span></span></span>”，
+      <button class="play-btn" onclick="playSentenceAudio('mamahenver8.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Хората казват, че дъщерите са „малко памучно яке“ на майките,</span>
+  </div>
+</div>
+
+<!-- 9 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">dàn shì</span><span class="hanzi">但是<span class="tooltiptext">но</span></span></span>
+      <span class="char-block"><span class="pinyin">wǒ de</span><span class="hanzi">我的<span class="tooltiptext">моето</span></span></span>
+      <span class="char-block"><span class="pinyin">bǎo bèi</span><span class="hanzi">宝贝<span class="tooltiptext">съкровище</span></span></span>
+      <span class="char-block"><span class="pinyin">xiàng</span><span class="hanzi">像<span class="tooltiptext">прилича на</span></span></span>
+      <span class="char-block"><span class="pinyin">yí</span><span class="hanzi">一<span class="tooltiptext">едно</span></span></span>
+      <span class="char-block"><span class="pinyin">jiàn</span><span class="hanzi">件<span class="tooltiptext">(бройка)(за дрехи)</span></span></span>
+      <span class="char-block"><span class="pinyin">dà dà de</span><span class="hanzi">大大的<span class="tooltiptext">голямо</span></span></span>
+      <span class="char-block"><span class="pinyin">yǔ</span><span class="hanzi">羽<span class="tooltiptext">пера</span></span></span>
+      <span class="char-block"><span class="pinyin">róng</span><span class="hanzi">绒<span class="tooltiptext">пух</span></span></span>
+      <span class="char-block"><span class="pinyin">fú</span><span class="hanzi">服<span class="tooltiptext">(дрехи)</span></span></span>，
+      <button class="play-btn" onclick="playSentenceAudio('mamahenver9.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Но моето съкровище е като едно голямо пухено яке,</span>
+  </div>
+</div>
+
+<!-- 10 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">bǐ</span><span class="hanzi">比<span class="tooltiptext">от (за сравнение)</span></span></span>“
+      <span class="char-block"><span class="pinyin">xiǎo</span><span class="hanzi">小<span class="tooltiptext">малко</span></span></span>
+      <span class="char-block"><span class="pinyin">mián ǎo</span><span class="hanzi">棉袄<span class="tooltiptext">памучно яке</span></span></span>”
+      <span class="char-block"><span class="pinyin">hái</span><span class="hanzi">还<span class="tooltiptext">още</span></span></span>
+      <span class="char-block"><span class="pinyin">wēn nuǎn</span><span class="hanzi">温暖<span class="tooltiptext">топло</span></span></span>！
+      <button class="play-btn" onclick="playSentenceAudio('mamahenver10.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Още по-топло от „малкото памучно яке“!</span>
+  </div>
+</div>
+
+<h2>Въпроси</h2>
+
+<!-- 1 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F5B041" stroke="#F39C12" stroke-width="4"/>
+    <text x="50" y="62" text-anchor="middle" font-size="60" fill="white" font-family="Arial" font-weight="bold">1</text>
+  </svg>
+
+  <div class="bubble">
+    <div class="sentence-container">
+    <span class="char-block"><span class="pinyin">nǚ'ér</span><span class="hanzi">女儿<span class="tooltiptext">дъщеря</span></span></span>
+    <span class="char-block"><span class="pinyin">xǐhuān</span><span class="hanzi">喜欢<span class="tooltiptext">харесва</span></span></span>
+    <span class="char-block"><span class="pinyin">zhè</span><span class="hanzi">这<span class="tooltiptext">тази</span></span></span>
+    <span class="char-block"><span class="pinyin">tiáo</span><span class="hanzi">条<span class="tooltiptext">(бройка)(за дълги предмети)</span></span></span>
+    <span class="char-block"><span class="pinyin">wéijīn</span><span class="hanzi">围巾<span class="tooltiptext">шал</span></span></span>
+    <span class="char-block"><span class="pinyin">ma</span><span class="hanzi">吗<span class="tooltiptext">(ли)</span></span></span>？
+  </div>
+  <span class="bulgarian">Дъщерята харесва ли този шал?</span>
+</div>
+</div>
+
+<!-- 2 -->
+ <div class="dialogue-line">
+   <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F5B041" stroke="#F39C12" stroke-width="4"/>
+    <text x="50" y="62" text-anchor="middle" font-size="60" fill="white" font-family="Arial" font-weight="bold">2</text>
+  </svg>
+
+  <div class="bubble">
+    <div class="sentence-container">    
+    <span class="char-block"><span class="pinyin">māma</span><span class="hanzi">妈妈<span class="tooltiptext">майка</span></span></span>
+    <span class="char-block"><span class="pinyin">juéde</span><span class="hanzi">觉得<span class="tooltiptext">чувства, мисли</span></span></span>
+    <span class="char-block"><span class="pinyin">nǚ'ér</span><span class="hanzi">女儿<span class="tooltiptext">дъщеря</span></span></span>
+    <span class="char-block"><span class="pinyin">xiàng</span><span class="hanzi">像<span class="tooltiptext">прилича на</span></span></span>
+    <span class="char-block"><span class="pinyin">shénme</span><span class="hanzi">什么<span class="tooltiptext">какво</span></span></span>？
+  </div>
+  <span class="bulgarian">Според майката на какво прилича дъщеря ѝ?</span>
+</div>
+</div>
+
+<style>
+a:link {text-decoration:none;}    /* unvisited link */
+a:visited {text-decoration:none;} /* visited link */
+a:hover {text-decoration:underline;}   /* mouse over link */
+a:active {text-decoration:underline;}  /* selected link */
+</style>
+
+<body>
+<p><b><a href="https://news.sina.com.cn/w/2018-05-12/doc-ihamfahw7828319.shtml" target="_blank">母亲的怀抱</a></b></p>
+</body>
+
+<div class="dialogue-line">
+    <div class="bubble">
+    <div class="sentence-container">   
+    <span class="char-block"><span class="pinyin">Jì yì</span><span class="hanzi">记忆<span class="tooltiptext">спомен</span></span></span>
+    <span class="char-block"><span class="pinyin">lǐ</span><span class="hanzi">里<span class="tooltiptext">в</span></span></span>
+    <span class="char-block"><span class="pinyin">zuì</span><span class="hanzi">最<span class="tooltiptext">най-</span></span></span>
+    <span class="char-block"><span class="pinyin">wēn nuǎn</span><span class="hanzi">温暖<span class="tooltiptext">топло</span></span></span>
+    <span class="char-block"><span class="pinyin">de</span><span class="hanzi">的<span class="tooltiptext">(частица)</span></span></span>
+    <span class="char-block"><span class="pinyin">,</span><span class="hanzi">，<span class="tooltiptext">,</span></span></span>
+  </div>
+  <span class="bulgarian">Най-топлото в спомените</span>
+</div>
+</div>
+
+<div class="dialogue-line">
+    <div class="bubble">
+    <div class="sentence-container">   
+<span class="char-block"><span class="pinyin">shì</span><span class="hanzi">是<span class="tooltiptext">е</span></span></span>
+    <span class="char-block"><span class="pinyin">mǔ qīn</span><span class="hanzi">母亲<span class="tooltiptext">майка</span></span></span>
+    <span class="char-block"><span class="pinyin">de</span><span class="hanzi">的<span class="tooltiptext">(притежателна частица)</span></span></span>
+    <span class="char-block"><span class="pinyin">huái bào</span><span class="hanzi">怀抱<span class="tooltiptext">прегръдки</span></span></span>
+    <span class="char-block"><span class="pinyin">.</span><span class="hanzi">。<span class="tooltiptext">.</span></span></span>
+ </div>
+  <span class="bulgarian">e майчината прегръдка.</span>
+</div>
+</div>
+
+<div class="dialogue-line">
+    <div class="bubble">
+    <div class="sentence-container">   
+    <span class="char-block"><span class="pinyin">zài</span><span class="hanzi">在<span class="tooltiptext">в</span></span></span>
+    <span class="char-block"><span class="pinyin">mǔ qīn de</span><span class="hanzi">母亲的<span class="tooltiptext">майчина</span></span></span>
+    <span class="char-block"><span class="pinyin">huáibào</span><span class="hanzi">怀抱<span class="tooltiptext">прегръдкa</span></span></span>
+    <span class="char-block"><span class="pinyin">lǐ</span><span class="hanzi">里<span class="tooltiptext">(вътре)</span></span></span>
+    <span class="char-block"><span class="pinyin">,</span><span class="hanzi">，<span class="tooltiptext">,</span></span></span>
+  </div>
+  <span class="bulgarian">В майчината прегръдка,</span>
+</div>
+</div>
+
+<div class="dialogue-line">
+    <div class="bubble">
+    <div class="sentence-container">   
+    <span class="char-block"><span class="pinyin">dōng tiān</span><span class="hanzi">冬天<span class="tooltiptext">зима</span></span></span>
+    <span class="char-block"><span class="pinyin">bú</span><span class="hanzi">不<span class="tooltiptext">не</span></span></span>
+    <span class="char-block"><span class="pinyin">zài</span><span class="hanzi">再<span class="tooltiptext">пак</span></span></span>
+    <span class="char-block"><span class="pinyin">hánlěng</span><span class="hanzi">寒冷<span class="tooltiptext">студена</span></span></span>
+    <span class="char-block"><span class="pinyin">.</span><span class="hanzi">。<span class="tooltiptext">.</span></span></span>
+  </div>
+  <span class="bulgarian">зимата вече няма да е студена.</span>
+</div>
+</div>
+
+
+</body>
+</html>
